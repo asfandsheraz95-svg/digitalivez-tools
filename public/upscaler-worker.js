@@ -96,8 +96,12 @@ async function infer(input, width, height, id) {
     const tensor = new runtime.Tensor('float32', input, [1, 3, height, width])
     const outputs = await session.run({ [inputName]: tensor }, [outputName])
     const output = outputs[outputName]
-    if (!output || output.dims.length !== 4 || output.dims[1] !== 3 || output.dims[2] !== height * 4 || output.dims[3] !== width * 4) throw new Error('The loaded model returned an unexpected image size.')
-    return output.data
+    const expectedLength = 3 * height * 4 * width * 4
+    if (!output || output.dims.length !== 4 || output.dims[1] !== 3 || output.dims[2] !== height * 4 || output.dims[3] !== width * 4 || output.data?.length !== expectedLength) throw new Error('The loaded model returned an unexpected image size.')
+    for (let index = 0; index < output.data.length; index++) {
+      if (!Number.isFinite(output.data[index])) throw new Error('The AI model returned invalid pixel data. Try again or use a smaller image.')
+    }
+    return { data: output.data, width: output.dims[3], height: output.dims[2] }
   }
   try {
     return await execute()
@@ -124,6 +128,8 @@ async function upscale({ id, image, factor }) {
     const columns = Math.ceil(image.width / TILE_SIZE)
     const rows = Math.ceil(image.height / TILE_SIZE)
     const total = columns * rows
+    const coverageMap = new Uint8Array(total)
+    const tileAudit = []
     let completed = 0
 
     for (let y = 0; y < image.height; y += TILE_SIZE) {
@@ -159,6 +165,17 @@ async function upscale({ id, image, factor }) {
         if (cancelled(id)) throw new Error('Processing cancelled.')
         const modelWidth = cropWidth * 4
         const modelHeight = cropHeight * 4
+        const audit = {
+          tileId: completed,
+          input: { x: cropX, y: cropY, width: cropWidth, height: cropHeight },
+          expectedModelOutput: { width: modelWidth, height: modelHeight },
+          actualModelOutput: { width: output.width, height: output.height },
+          destination: { x: x * factor, y: y * factor, width: coreWidth * factor, height: coreHeight * factor },
+          status: 'processing',
+          covered: false,
+        }
+        if (output.width !== modelWidth || output.height !== modelHeight) throw new Error(`Tile ${audit.tileId + 1} returned unexpected dimensions.`)
+        tileAudit.push(audit)
         const modelCanvas = new OffscreenCanvas(modelWidth, modelHeight)
         const modelContext = modelCanvas.getContext('2d', { alpha: false })
         if (!modelContext) throw new Error('The browser could not assemble the enhanced image tile.')
@@ -166,23 +183,30 @@ async function upscale({ id, image, factor }) {
         const modelPlaneSize = modelWidth * modelHeight
         for (let pixel = 0; pixel < modelPlaneSize; pixel++) {
           const target = pixel * 4
-          rgba[target] = Math.max(0, Math.min(255, Math.round(output[pixel] * 255)))
-          rgba[target + 1] = Math.max(0, Math.min(255, Math.round(output[modelPlaneSize + pixel] * 255)))
-          rgba[target + 2] = Math.max(0, Math.min(255, Math.round(output[modelPlaneSize * 2 + pixel] * 255)))
+          rgba[target] = Math.max(0, Math.min(255, Math.round(output.data[pixel] * 255)))
+          rgba[target + 1] = Math.max(0, Math.min(255, Math.round(output.data[modelPlaneSize + pixel] * 255)))
+          rgba[target + 2] = Math.max(0, Math.min(255, Math.round(output.data[modelPlaneSize * 2 + pixel] * 255)))
           rgba[target + 3] = 255
         }
         modelContext.putImageData(new ImageData(rgba, modelWidth, modelHeight), 0, 0)
         outputContext.drawImage(modelCanvas, (x - cropX) * 4, (y - cropY) * 4, coreWidth * 4, coreHeight * 4, x * factor, y * factor, coreWidth * factor, coreHeight * factor)
+        coverageMap[completed] = 1
+        tileAudit[completed].status = 'complete'
+        tileAudit[completed].covered = true
         completed++
         send({ type: 'progress', id, completed, total })
+        await new Promise(resolve => setTimeout(resolve, 0))
       }
     }
 
     if (cancelled(id)) throw new Error('Processing cancelled.')
+    const coveredTiles = coverageMap.reduce((count, covered) => count + covered, 0)
+    const auditIsComplete = tileAudit.length === total && tileAudit.every(tile => tile.status === 'complete' && tile.covered && tile.destination.x >= 0 && tile.destination.y >= 0 && tile.destination.x + tile.destination.width <= outputWidth && tile.destination.y + tile.destination.height <= outputHeight)
+    if (completed !== total || coveredTiles !== total || !auditIsComplete) throw new Error('The enhanced image is incomplete because one or more tiles did not cover their output region.')
     outputContext.globalCompositeOperation = 'destination-in'
     outputContext.drawImage(image, 0, 0, outputWidth, outputHeight)
     const result = outputCanvas.transferToImageBitmap()
-    send({ type: 'result', id, image: result, width: outputWidth, height: outputHeight, backend }, [result])
+    send({ type: 'result', id, image: result, width: outputWidth, height: outputHeight, backend, integrity: { expectedTiles: total, completedTiles: completed, coveredTiles }, tileAudit }, [result])
   } catch (error) {
     send({ type: 'error', id, message: error instanceof Error ? error.message : 'The AI model could not process this image.', cancelled: cancelled(id) })
   } finally {

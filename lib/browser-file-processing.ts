@@ -188,7 +188,7 @@ export async function addPdfPageNumbers(file: File, options: PageNumberOptions, 
   return { name: 'numbered-document.pdf', blob: new Blob([await document.save({ useObjectStreams: true })], { type: 'application/pdf' }), kind: 'pdf' }
 }
 
-export type WatermarkOptions = { text: string; size: number; color: string; opacity: number; rotation: number; position: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'; pages: number[] }
+export type WatermarkOptions = { text: string; size: number; color: string; opacity: number; rotation: number; position: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'; x?: number; y?: number; pages: number[] }
 export async function watermarkPdf(file: File, options: WatermarkOptions, imageFile: File | null, onProgress: ProgressUpdate): Promise<LocalOutput> {
   const { PDFDocument, rgb, degrees } = await import('pdf-lib')
   const document = await PDFDocument.load(await file.arrayBuffer())
@@ -204,13 +204,13 @@ export async function watermarkPdf(file: File, options: WatermarkOptions, imageF
     if (image) {
       const drawWidth = Math.min(width * 0.45, image.width)
       const drawHeight = drawWidth * image.height / image.width
-      const x = options.position.includes('left') ? 28 : options.position.includes('right') ? width - drawWidth - 28 : (width - drawWidth) / 2
-      const y = options.position.includes('top') ? height - drawHeight - 28 : options.position.includes('bottom') ? 28 : (height - drawHeight) / 2
+      const x = options.x !== undefined ? Math.max(0, Math.min(width - drawWidth, (options.x / 100) * width - drawWidth / 2)) : options.position.includes('left') ? 28 : options.position.includes('right') ? width - drawWidth - 28 : (width - drawWidth) / 2
+      const y = options.y !== undefined ? Math.max(0, Math.min(height - drawHeight, height - (options.y / 100) * height - drawHeight / 2)) : options.position.includes('top') ? height - drawHeight - 28 : options.position.includes('bottom') ? 28 : (height - drawHeight) / 2
       page.drawImage(image, { x, y, width: drawWidth, height: drawHeight, opacity: options.opacity, rotate: degrees(options.rotation) })
     } else if (options.text.trim()) {
       const textWidth = options.text.length * options.size * 0.56
-      const x = options.position.includes('left') ? 28 : options.position.includes('right') ? width - textWidth - 28 : (width - textWidth) / 2
-      const y = options.position.includes('top') ? height - options.size - 28 : options.position.includes('bottom') ? 28 : height / 2
+      const x = options.x !== undefined ? Math.max(0, Math.min(width - textWidth, (options.x / 100) * width - textWidth / 2)) : options.position.includes('left') ? 28 : options.position.includes('right') ? width - textWidth - 28 : (width - textWidth) / 2
+      const y = options.y !== undefined ? Math.max(options.size, Math.min(height - 28, height - (options.y / 100) * height - options.size / 2)) : options.position.includes('top') ? height - options.size - 28 : options.position.includes('bottom') ? 28 : height / 2
       page.drawText(options.text, { x, y, size: options.size, color: rgb(color.r / 255, color.g / 255, color.b / 255), opacity: options.opacity, rotate: degrees(options.rotation) })
     }
     onProgress('Applying watermark', index + 1, pages.length)

@@ -53,13 +53,13 @@ export function CookieConsent() {
       {choice === 'unset' && (
         <aside className="cookie-consent" aria-label="Analytics and cookie preferences" aria-live="polite">
           <div className="cookie-consent-copy">
-            <strong>Choose your Analytics and Cookies preferences</strong>
-            <p>Allow Analytics and Cookies? If you accept, Google Analytics and Meta Pixel help us understand site visits. These tools may send page views and browser/device information to Google and Meta. <Link href="/privacy">Read our privacy policy</Link>.</p>
-            <small>Your choice is saved in a first-party cookie for 6 months. You can change it any time in Cookie settings.</small>
+            <strong>Cookie preferences</strong>
+            <p>We use cookies to analyze Digitalivez site traffic and improve your experience. Accept to allow optional analytics cookies. <Link href="/privacy">Privacy Policy</Link></p>
+            <small>You can change your choice any time in Cookie settings.</small>
           </div>
           <div className="cookie-consent-actions">
-            <button type="button" className="cookie-reject" onClick={() => choose('rejected')}>Reject Analytics &amp; Cookies</button>
-            <button type="button" className="cookie-accept" onClick={() => choose('accepted')}>Accept Analytics &amp; Cookies</button>
+            <button type="button" className="cookie-reject" onClick={() => choose('rejected')}>Decline</button>
+            <button type="button" className="cookie-accept" onClick={() => choose('accepted')}>Accept</button>
           </div>
         </aside>
       )}

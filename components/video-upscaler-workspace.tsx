@@ -242,11 +242,15 @@ export function VideoUpscalerWorkspace() {
       if (!videoTrack || !(await videoTrack.canDecode())) throw new Error('The source video codec is no longer available for decoding in this browser.')
       workerRef.current ??= createUpscalerWorker()
       const modelWorker = workerRef.current
+      let lastFrameTimestamp = Number.NEGATIVE_INFINITY
       let queue = Promise.resolve<void>(undefined)
       const processFrame = (sample: import('mediabunny').VideoSample) => {
         const work = queue.then(async () => {
           if (cancelRef.current) throw new Error('Processing cancelled.')
           if (processedFramesRef.current >= MAX_FRAMES) throw new Error(`The video exceeded the ${MAX_FRAMES}-frame safety limit. Use a shorter clip.`)
+          if (!Number.isFinite(sample.timestamp) || sample.timestamp < lastFrameTimestamp) throw new Error(`Frame ${processedFramesRef.current + 1} had an invalid or out-of-order timestamp. Export was stopped rather than silently changing video timing.`)
+          lastFrameTimestamp = sample.timestamp
+          if (!Number.isSafeInteger(sample.displayWidth) || !Number.isSafeInteger(sample.displayHeight) || sample.displayWidth < 1 || sample.displayHeight < 1) throw new Error(`Frame ${processedFramesRef.current + 1} has invalid dimensions; export was stopped.`)
           const frameCanvas = new OffscreenCanvas(sample.displayWidth, sample.displayHeight)
           const frameContext = frameCanvas.getContext('2d')
           if (!frameContext) throw new Error('This browser could not prepare a video frame for enhancement.')
@@ -263,6 +267,12 @@ export function VideoUpscalerWorkspace() {
           if (cancelRef.current) {
             enhanced.image.close()
             throw new Error('Processing cancelled.')
+          }
+          const expectedWidth = sample.displayWidth * factor
+          const expectedHeight = sample.displayHeight * factor
+          if (enhanced.width !== expectedWidth || enhanced.height !== expectedHeight || enhanced.image.width !== expectedWidth || enhanced.image.height !== expectedHeight) {
+            enhanced.image.close()
+            throw new Error(`Frame ${processedFramesRef.current + 1} did not produce the expected ${expectedWidth} × ${expectedHeight} output. The export was stopped rather than including an incomplete frame.`)
           }
           processedFramesRef.current++
           if (processedFramesRef.current % 2 === 0 || processedFramesRef.current === 1) setProcessedFrames(processedFramesRef.current)
@@ -303,6 +313,7 @@ export function VideoUpscalerWorkspace() {
       setStatus(`Processing with ${MODEL_NAME}. This can take several minutes on some computers.`)
       await conversion.execute()
       if (cancelRef.current) throw new Error('Processing cancelled.')
+      if (processedFramesRef.current < 1) throw new Error('The conversion produced no successfully enhanced frames. No export was created.')
       setProgress(100)
       setProcessedFrames(processedFramesRef.current)
 

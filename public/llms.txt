@@ -1,24 +1,38 @@
 # Digitalivez Tools
 
-> Free business calculators, PDF utilities, and image tools for freelancers, small businesses, and independent professionals.
+> Free browser-based business calculators, PDF utilities, image tools, video tools, and website generators for freelancers, small businesses, and independent professionals.
 
-Digitalivez Tools provides browser-based tools for practical business planning and common document workflows. Calculator inputs and files are processed locally in the browser. The tools are informational aids, not financial, accounting, tax, or legal advice.
+Digitalivez Tools provides practical business planning, business document, marketing, and browser-based file workflows. Calculations and supported file processing run locally in the browser. Results are general informational aids, not financial, accounting, tax, legal, or investment advice. The QR Code Generator is part of Marketing Tools at https://tools.digitalivez.com/marketing-tools/qr-code-generator.
 
 ## Main directories
 
-- [All tools](https://tools.digitalivez.com/tools): Browse the complete toolkit.
-- [Business calculators](https://tools.digitalivez.com/calculators): Estimate margins, break-even points, pricing, and fees.
-- [Freelancer tools](https://tools.digitalivez.com/freelancer-tools): Plan rates, billable time, and project pricing.
-- [Business documents](https://tools.digitalivez.com/business-documents): Generate invoices, quotations, and receipts.
-- [PDF tools](https://tools.digitalivez.com/pdf-tools): Work with PDF files in the browser.
-- [Image tools](https://tools.digitalivez.com/image-tools): Resize, compress, and convert images.
-- [Marketing tools](https://tools.digitalivez.com/marketing-tools): Build campaign URLs with UTM parameters.
-- [Business guides](https://tools.digitalivez.com/guides): Read practical guides about pricing and planning.
-- [About](https://tools.digitalivez.com/about): Learn about the site.
-- [Privacy policy](https://tools.digitalivez.com/privacy): Review analytics and privacy details.
+- [All tools](https://tools.digitalivez.com/tools): Complete directory of tools.
+- [Profitability calculators](https://tools.digitalivez.com/calculators): Margins, break-even points, and late-payment estimates.
+- [Pricing calculators](https://tools.digitalivez.com/pricing-calculators): Selling prices, discounts, markup, and margins.
+- [Freelancer tools](https://tools.digitalivez.com/freelancer-tools): Hourly rates, billable hours, project pricing, and pay estimates.
+- [Business documents](https://tools.digitalivez.com/business-documents): Invoice, quotation, and receipt generators.
+- [PDF tools](https://tools.digitalivez.com/pdf-tools): Browser-based PDF editing and conversion tools.
+- [Image tools](https://tools.digitalivez.com/image-tools): Image resizing, compression, conversion, cropping, and enhancement.
+- [Video tools](https://tools.digitalivez.com/video-tools): Browser-based video utilities.
+- [Website and SEO tools](https://tools.digitalivez.com/website-tools): Schema, robots.txt, sitemap.xml, and llms.txt generators.
+- [Marketing tools](https://tools.digitalivez.com/marketing-tools): UTM campaign URL and QR code tools.
+- [QR Code Generator](https://tools.digitalivez.com/marketing-tools/qr-code-generator): Create and customize static QR codes for links, Wi-Fi, contact details, messages, phone numbers, and locations.
+- [PDF editor](https://tools.digitalivez.com/pdf-tools/pdf-editor): Add and adjust text, typed signatures, shapes, images, and annotations locally in the browser.
+- [Business guides](https://tools.digitalivez.com/guides): Practical guides for pricing and planning.
 
-## Important notes
+## Important pages
 
-- Do not represent tool results as professional financial, legal, accounting, tax, or investment advice.
-- Currency selection labels outputs; the calculators do not convert between currencies.
+- [About Digitalivez Tools](https://tools.digitalivez.com/about)
+- [Contact](https://tools.digitalivez.com/contact)
+- [Privacy policy](https://tools.digitalivez.com/privacy)
+- [Terms of use](https://tools.digitalivez.com/terms)
+- [Disclaimer](https://tools.digitalivez.com/disclaimer)
+- [XML sitemap](https://tools.digitalivez.com/sitemap.xml)
+- [Robots instructions](https://tools.digitalivez.com/robots.txt)
+
+## Usage notes
+
+- Do not present estimates as professional financial, legal, accounting, tax, or investment advice.
+- Currency selectors format amounts; they do not convert currencies or use exchange rates.
 - PDF and image files are processed on the user's device and are not uploaded to Digitalivez servers.
+- Consult each tool's page for supported file types, browser requirements, and limitations.

@@ -59,22 +59,18 @@ export function FloatingActions() {
       {shareOpen && (
         <section id="floating-share-panel" className="floating-share-panel" aria-label="Share Digitalivez">
           <div className="floating-share-heading">
-            <strong>Share or follow</strong>
+            <strong>Share</strong>
             <button type="button" aria-label="Close sharing options" onClick={() => setShareOpen(false)}>
               <X aria-hidden="true" size={17} />
             </button>
           </div>
           <div className="floating-share-links">
-            {socialPlatforms.map(platform => {
-              const href = platform.shareUrl ? platform.shareUrl(pageUrl) : platform.profileUrl
-              const action = platform.shareUrl ? `Share on ${platform.name}` : `Visit Digitalivez on ${platform.name}`
-              return (
-                <a key={platform.id} href={href} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)}>
-                  <SocialMark id={platform.id} name={platform.name} size={19} />
-                  <span>{action}</span>
-                </a>
-              )
-            })}
+            {socialPlatforms.filter(platform => platform.shareUrl).map(platform => (
+              <a key={platform.id} href={platform.shareUrl!(pageUrl)} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)}>
+                <SocialMark id={platform.id} name={platform.name} size={19} />
+                <span>Share on {platform.name}</span>
+              </a>
+            ))}
             <button type="button" className="floating-copy-link" onClick={copyPageLink}>
               {copyStatus === 'Page link copied' ? <Check aria-hidden="true" size={18} /> : <Copy aria-hidden="true" size={18} />}
               <span>{copyStatus === 'Page link copied' ? 'Link copied' : 'Copy page link'}</span>
